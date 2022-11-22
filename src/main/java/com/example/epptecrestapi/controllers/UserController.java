@@ -1,13 +1,46 @@
 package com.example.epptecrestapi.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.epptecrestapi.models.DTOs.ErrorDTO;
+import com.example.epptecrestapi.models.DTOs.MessageDTO;
+import com.example.epptecrestapi.models.Person;
+import com.example.epptecrestapi.services.PersonService;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
+@RequestMapping("/api")
+@AllArgsConstructor
 public class UserController {
+    private final PersonService personService;
 
-    @GetMapping("/demo")
-    public String demo() {
-        return "Hello";
+    @PostMapping("/person")
+    public ResponseEntity<Object> addUser(@Valid @RequestBody Person person) {
+        if (personService.idExists(person.getIdNumber())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorDTO("ID number must be unique!"));
+        }
+        personService.addPerson(person);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new MessageDTO("Added new person successfully."));
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException e) {
+        Map<String, String> errors = new HashMap<>();
+        e.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
     }
 }
