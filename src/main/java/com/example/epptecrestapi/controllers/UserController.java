@@ -32,6 +32,17 @@ public class UserController {
                 .body(new MessageDTO("Added new person successfully."));
     }
 
+    @DeleteMapping("/person/{id}")
+    public ResponseEntity<Object> removeUser(@PathVariable("id") String id) {
+        if (!personService.idExists(id)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorDTO("No person found with provided ID!"));
+        }
+        personService.removePerson(id);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new MessageDTO("Removed person successfully."));
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException e) {

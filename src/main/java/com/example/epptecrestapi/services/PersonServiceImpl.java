@@ -24,6 +24,12 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
+    public void removePerson(String id) {
+        id = parseIdNumber(id);
+        personRepository.deleteById(id);
+    }
+
+    @Override
     public String parseIdNumber(String id) {
         return id.matches("\\d{10}") ?
                 id.substring(0, 6) + "/" + id.substring(6)
